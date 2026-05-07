@@ -35,6 +35,10 @@ def load_referentials(referential_dir: Path) -> Dict[str, pd.DataFrame]:
             referential_dir / "familles_lexicales.csv",
             {"terme_reference", "variante", "categorie", "gravite"},
         ),
+        "domaines_semantiques": _read_csv(
+            referential_dir / "domaines_semantiques.csv",
+            {"domaine", "terme_reference", "variante", "categorie", "gravite", "commentaire"},
+        ),
         "whitelist": _read_csv(
             referential_dir / "whitelist.csv",
             {"expression", "categorie"},

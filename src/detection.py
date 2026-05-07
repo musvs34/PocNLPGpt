@@ -2,9 +2,10 @@ from typing import Dict, List, Tuple
 
 from rapidfuzz import fuzz
 
-from lemmatizer import get_lemmas, get_token_texts, lemmatize_text
+from lemmatizer import get_lemmas, get_token_texts, lemmatize_text, load_nlp
 from normalize_text import normalize_text
 from scoring import calculate_final_score, determine_status
+from camembert_utils import expand_domain_with_camembert, semantic_similarity
 
 
 def analyze_document(pdf_path, text_by_page, referentials, config):
@@ -34,6 +35,9 @@ def analyze_document(pdf_path, text_by_page, referentials, config):
 
         if config["detection"].get("activer_synonymes", True):
             alerts.extend(detect_synonyms(pdf_path.name, page_number, text, referentials["synonymes"], config))
+
+        if config["detection"].get("activer_domaines_semantiques", True):
+            alerts.extend(detect_domain_semantics(pdf_path.name, page_number, text, page_tokens, referentials["domaines_semantiques"], config))
 
         if config["detection"].get("activer_mots_proches", True):
             alerts.extend(detect_close_words(pdf_path.name, page_number, text, referentials["mots_interdits"], config))
@@ -159,6 +163,98 @@ def detect_synonyms(document, page, text, synonymes, config):
                 row["synonyme"], row["terme_reference"], "synonyme", row["categorie"],
                 f"Synonyme métier du terme interdit : {row['terme_reference']}", text, config
             ))
+    return alerts
+
+
+def detect_domain_semantics(document, page, text, tokens, domaines, config):
+    alerts = []
+    if not tokens:
+        tokens = []  # Ensure tokens is a list
+
+    nlp = load_nlp()
+    domains_to_analyze = {
+        normalize_text(domain)
+        for domain in config["detection"].get("domaines_a_analyser", [])
+        if domain
+    }
+    print(f"DEBUG: domains_to_analyze = {domains_to_analyze}")
+
+    domain_entries = [
+        row
+        for _, row in domaines.iterrows()
+        if not domains_to_analyze or normalize_text(row.get("domaine", "")) in domains_to_analyze
+    ]
+    print(f"DEBUG: domain_entries count = {len(domain_entries)}")
+    if not domain_entries:
+        return alerts
+
+    domain_seeds = {}
+    domain_meta = {}
+    for row in domain_entries:
+        domaine = normalize_text(row.get("domaine") or row.get("terme_reference") or "")
+        variante = normalize_text(row.get("variante", ""))
+        if not variante:
+            continue
+        domain_seeds.setdefault(domaine, set()).add(variante)
+        if domaine not in domain_meta:
+            domain_meta[domaine] = row
+
+    print(f"DEBUG: domain_seeds = {domain_seeds}")
+
+    # Enrichissement automatique avec CamemBERT si activé
+    if config["detection"].get("enrichir_avec_camembert", False):
+        all_candidates = [normalize_text(token["text"]) for token in tokens if len(token["text"]) > 3]
+        domain_seeds = expand_domain_with_camembert(domain_seeds, all_candidates, config["detection"].get("seuil_similarite_semantique", 0.7))
+
+    similarity_threshold = float(config["detection"].get("seuil_similarite_semantique", 0.60))
+    matched_terms = set()
+    for domaine, seeds in domain_seeds.items():
+        meta = domain_meta.get(domaine, {})
+        gravite = int(meta.get("gravite") or config["score"].get("domaines_semantiques", config["score"]["famille_lexicale"]))
+        categorie = meta.get("categorie", domaine)
+        terme_reference = meta.get("terme_reference") or domaine
+        commentaire = meta.get("commentaire", f"Domaine sémantique {domaine}")
+
+        for seed in seeds:
+            if contains_expression(text, seed) and seed not in matched_terms:
+                print(f"DEBUG: Detected seed '{seed}' in text for domain '{domaine}'")
+                matched_terms.add(seed)
+                alerts.append(make_alert(
+                    document, page, gravite, seed, terme_reference,
+                    "domaine sémantique", categorie,
+                    commentaire, text, config
+                ))
+
+        seed_vectors = []
+        for seed in seeds:
+            seed_lex = nlp.vocab[seed]
+            if seed_lex.has_vector:
+                seed_vectors.append((seed, seed_lex))
+
+        for token in tokens:
+            lemma = token["lemma"]
+            if lemma in seeds or token["text"] in seeds:
+                continue
+            if len(lemma) < 3 or not lemma.isalpha():
+                continue
+            token_lex = nlp.vocab[lemma]
+            if not token_lex.has_vector:
+                continue
+
+            for seed, seed_lex in seed_vectors:
+                similarity = token_lex.similarity(seed_lex)
+                if similarity >= similarity_threshold:
+                    detected_text = token["text"]
+                    if detected_text not in matched_terms:
+                        matched_terms.add(detected_text)
+                        alerts.append(make_alert(
+                            document, page, gravite, detected_text, terme_reference,
+                            "domaine sémantique", categorie,
+                            f"Terme proche sémantiquement du domaine {domaine} (seed={seed}, sim={similarity:.2f})",
+                            text, config
+                        ))
+                    break
+    print(f"DEBUG: Total alerts for domains = {len(alerts)}")
     return alerts
 
 
