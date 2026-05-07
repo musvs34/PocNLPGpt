@@ -1,0 +1,10 @@
+terme_reference,synonyme,categorie,gravite
+maladie,pathologie,sante,80
+maladie,affection,sante,80
+maladie,trouble de santé,sante,80
+cancer,tumeur,sante,90
+handicap,invalidité,sante,85
+hospitalisation,séjour hospitalier,sante,85
+traitement médical,soins médicaux,sante,85
+religion,croyance religieuse,religion,80
+syndicat,organisation syndicale,appartenance_syndicale,80

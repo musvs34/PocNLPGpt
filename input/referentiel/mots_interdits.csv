@@ -1,0 +1,12 @@
+terme,categorie,gravite,commentaire
+cancer,sante,100,Donnée de santé potentielle
+maladie,sante,100,Donnée de santé potentielle
+handicap,sante,100,Donnée de santé potentielle
+hospitalisation,sante,100,Donnée de santé potentielle
+traitement médical,sante,100,Donnée de santé potentielle
+syndicat,appartenance_syndicale,100,Appartenance syndicale potentielle
+musulman,religion,100,Conviction religieuse potentielle
+catholique,religion,100,Conviction religieuse potentielle
+juif,religion,100,Conviction religieuse potentielle
+orientation sexuelle,vie_sexuelle,100,Donnée vie sexuelle potentielle
+origine ethnique,origine_ethnique,100,Origine ethnique potentielle

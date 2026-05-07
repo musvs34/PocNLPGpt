@@ -1,0 +1,28 @@
+score:
+  mot_interdit_exact: 100
+  lemme: 85
+  famille_lexicale: 85
+  synonyme: 80
+  mot_proche: 60
+  occurrence_multiple: 10
+
+seuils:
+  risque_faible: 30
+  a_surveiller: 60
+  risque_fort: 80
+  non_conforme: 100
+
+detection:
+  activer_lemmatisation: true
+  activer_familles_lexicales: true
+  activer_synonymes: true
+  activer_mots_proches: true
+  seuil_similarite_orthographique: 88
+  taille_contexte_mots: 12
+  ignorer_mots_trop_courts: 4
+  dedoublonner_alertes: true
+
+sortie:
+  inclure_contexte: true
+  format_csv: true
+  format_excel: true
