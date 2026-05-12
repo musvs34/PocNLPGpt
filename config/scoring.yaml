@@ -1,10 +1,8 @@
 score:
   mot_interdit_exact: 100
   lemme: 85
-  famille_lexicale: 85
-  synonyme: 80
+  synonyme_automatique: 80
   mot_proche: 60
-  domaines_semantiques: 75
   occurrence_multiple: 10
 
 seuils:
@@ -15,16 +13,14 @@ seuils:
 
 detection:
   activer_lemmatisation: true
-  activer_familles_lexicales: true
-  activer_synonymes: true
+  activer_synonymes_automatiques: true
   activer_mots_proches: true
-  activer_domaines_semantiques: true
-  enrichir_avec_camembert: false  # Active l'enrichissement automatique avec CamemBERT
-  domaines_a_analyser:
-    - sante
-    - religion
+  seuil_synonyme_automatique: 0.72
   seuil_similarite_orthographique: 88
-  seuil_similarite_semantique: 0.60
+  pos_synonymes_automatiques:
+    - NOUN
+    - PROPN
+    - ADJ
   taille_contexte_mots: 12
   ignorer_mots_trop_courts: 4
   dedoublonner_alertes: true

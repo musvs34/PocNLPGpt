@@ -1,13 +1,13 @@
-# Contrôle RGPD Article 9 - Assurance vie
+# Controle RGPD Article 9 - Assurance vie
 
-Projet Python local pour analyser des PDF en français et identifier les documents susceptibles de contenir des termes sensibles Article 9 RGPD.
+Projet Python local pour analyser des PDF en francais et identifier les documents susceptibles de contenir des termes sensibles Article 9 RGPD.
 
 ## Principes
 
 - Aucun appel API externe.
 - Traitement local uniquement.
-- Paramétrage par fichiers CSV et YAML.
-- Détection explicable : mot exact, lemme, famille lexicale, synonyme, mot proche.
+- Parametrage par `mots_interdits.csv`, `whitelist.csv` et `config/scoring.yaml`.
+- Detection explicable : mot exact, lemme, synonyme automatique, mot proche.
 - Sortie CSV et Excel locales.
 
 ## Installation
@@ -31,14 +31,18 @@ Puis lancez :
 python src/main.py
 ```
 
-## Référentiels
+## Referentiels
 
 ```text
 input/referentiel/mots_interdits.csv
-input/referentiel/synonymes.csv
-input/referentiel/familles_lexicales.csv
 input/referentiel/whitelist.csv
 ```
+
+`mots_interdits.csv` est la source principale. Chaque ligne fournit le `terme` de reference, sa `categorie`, sa `gravite` et le `commentaire` utilise dans les alertes.
+
+La detection `synonyme automatique` compare les termes presents dans les documents avec les termes de `mots_interdits.csv` par similarite semantique spaCy. L'alerte reprend la categorie du terme de reference.
+
+`whitelist.csv` liste les expressions a ignorer avant analyse pour limiter les faux positifs.
 
 ## Notebooks
 
@@ -50,9 +54,8 @@ notebooks/02_analyse_resultats.ipynb
 ## Scoring
 
 - Mot interdit exact : score final 100, non conforme probable.
-- Lemme : risque fort paramétrable.
-- Famille lexicale : risque fort paramétrable.
-- Synonyme métier : risque fort paramétrable.
-- Mot proche : alerte de similarité orthographique.
+- Lemme : risque fort parametrable.
+- Synonyme automatique : risque fort parametrable.
+- Mot proche : alerte de similarite orthographique.
 
-Le score est plafonné à 100.
+Le score est plafonne a 100.

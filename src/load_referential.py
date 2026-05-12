@@ -12,7 +12,7 @@ def load_config(config_file: Path) -> Dict:
 
 def _read_csv(path: Path, required_columns: set) -> pd.DataFrame:
     if not path.exists():
-        raise FileNotFoundError(f"Référentiel manquant : {path}")
+        raise FileNotFoundError(f"Referentiel manquant : {path}")
     df = pd.read_csv(path, encoding="utf-8")
     missing = required_columns - set(df.columns)
     if missing:
@@ -26,18 +26,6 @@ def load_referentials(referential_dir: Path) -> Dict[str, pd.DataFrame]:
         "mots_interdits": _read_csv(
             referential_dir / "mots_interdits.csv",
             {"terme", "categorie", "gravite", "commentaire"},
-        ),
-        "synonymes": _read_csv(
-            referential_dir / "synonymes.csv",
-            {"terme_reference", "synonyme", "categorie", "gravite"},
-        ),
-        "familles_lexicales": _read_csv(
-            referential_dir / "familles_lexicales.csv",
-            {"terme_reference", "variante", "categorie", "gravite"},
-        ),
-        "domaines_semantiques": _read_csv(
-            referential_dir / "domaines_semantiques.csv",
-            {"domaine", "terme_reference", "variante", "categorie", "gravite", "commentaire"},
         ),
         "whitelist": _read_csv(
             referential_dir / "whitelist.csv",
